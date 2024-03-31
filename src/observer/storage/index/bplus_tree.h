@@ -28,6 +28,7 @@ See the Mulan PSL v2 for more details. */
 #include "sql/parser/parse_defs.h"
 #include "common/lang/comparator.h"
 #include "common/log/log.h"
+#include "common/lang/date.h"
 
 /**
  * @brief B+树的实现
@@ -75,6 +76,9 @@ public:
       case CHARS: {
         return common::compare_string((void *)v1, attr_length_, (void *)v2, attr_length_);
       }
+      case DATES: {
+        return common::compare_date((void *)v1, (void *)v2);
+      } 
       default: {
         ASSERT(false, "unknown attr type. %d", attr_type_);
         return 0;
@@ -157,6 +161,11 @@ public:
           str.push_back(v[i]);
         }
         return str;
+      }
+      case DATES: {
+        std::string str;
+        common::intDate_to_strDate(*(int *)v, str);
+        return str;        
       }
       default: {
         ASSERT(false, "unknown attr type. %d", attr_type_);
