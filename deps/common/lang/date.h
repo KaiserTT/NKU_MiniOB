@@ -8,6 +8,8 @@ namespace common {
 
     bool check_date(const int& year, const int& month, const int& day);
 
+    bool check_date(const int& date);
+
     void intDate_to_strDate(const int& int_date, std::string& str_date);
 
     void strDate_to_intDate(const std::string& str_date, int& int_date);

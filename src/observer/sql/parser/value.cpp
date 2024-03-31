@@ -66,7 +66,7 @@ Value::Value(const char *s, int len, int flag){
   common::strDate_to_intDate(str_date, int_date);
   if (int_date == -1)
     LOG_WARN("unknown data type.");
-  else 
+  else
     set_date(int_date);
 }
 
@@ -121,7 +121,7 @@ void Value::set_date(int val)
 {
   attr_type_= DATES;
   num_value_.date_value_= val;
-  length_= sizeof(val);
+  length_= sizeof(val);    
 }
 
 void Value::set_string(const char *s, int len /*= 0*/)
