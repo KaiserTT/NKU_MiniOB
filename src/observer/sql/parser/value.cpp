@@ -18,12 +18,13 @@ See the Mulan PSL v2 for more details. */
 #include "common/log/log.h"
 #include "common/lang/comparator.h"
 #include "common/lang/string.h"
+#include "common/lang/date.h"
 
-const char *ATTR_TYPE_NAME[] = {"undefined", "chars", "ints", "floats", "booleans"};
+const char *ATTR_TYPE_NAME[] = {"undefined", "chars", "ints", "floats", "dates", "booleans"};
 
 const char *attr_type_to_string(AttrType type)
 {
-  if (type >= UNDEFINED && type <= FLOATS) {
+  if (type >= UNDEFINED && type <= DATES) {
     return ATTR_TYPE_NAME[type];
   }
   return "unknown";
@@ -58,6 +59,14 @@ Value::Value(const char *s, int len /*= 0*/)
   set_string(s, len);
 }
 
+Value::Value(const char *s, int len, int flag){
+  int int_date = -1;
+  std::string str_date(s);
+  // str to date
+  common::strDate_to_intDate(str_date, int_date);
+  set_date(int_date);
+}
+
 void Value::set_data(char *data, int length)
 {
   switch (attr_type_) {
@@ -75,6 +84,10 @@ void Value::set_data(char *data, int length)
     case BOOLEANS: {
       num_value_.bool_value_ = *(int *)data != 0;
       length_ = length;
+    } break;
+    case DATES: {
+      num_value_.date_value_ = *(int *)data;
+      length_=length;
     } break;
     default: {
       LOG_WARN("unknown data type: %d", attr_type_);
@@ -100,6 +113,14 @@ void Value::set_boolean(bool val)
   num_value_.bool_value_ = val;
   length_ = sizeof(val);
 }
+
+void Value::set_date(int val)
+{
+  attr_type_= DATES;
+  num_value_.date_value_= val;
+  length_= sizeof(val);
+}
+
 void Value::set_string(const char *s, int len /*= 0*/)
 {
   attr_type_ = CHARS;
@@ -126,6 +147,9 @@ void Value::set_value(const Value &value)
     } break;
     case BOOLEANS: {
       set_boolean(value.get_boolean());
+    } break;
+    case DATES: {
+      set_date(value.get_date());
     } break;
     case UNDEFINED: {
       ASSERT(false, "got an invalid value type");
@@ -161,6 +185,11 @@ std::string Value::to_string() const
     case CHARS: {
       os << str_value_;
     } break;
+    case DATES: {
+      std::string str_Date = "";
+      common::intDate_to_strDate(num_value_.date_value_, str_Date);
+      os << str_Date;
+    } break;
     default: {
       LOG_WARN("unsupported attr type: %d", attr_type_);
     } break;
@@ -183,6 +212,10 @@ int Value::compare(const Value &other) const
             this->str_value_.length(),
             (void *)other.str_value_.c_str(),
             other.str_value_.length());
+      } break;
+      case DATES: {
+        // add compare_date
+        return common::compare_date((void *)&this->num_value_.date_value_, (void *)&other.num_value_.date_value_);
       } break;
       case BOOLEANS: {
         return common::compare_int((void *)&this->num_value_.bool_value_, (void *)&other.num_value_.bool_value_);
@@ -249,6 +282,21 @@ float Value::get_float() const
     } break;
     case BOOLEANS: {
       return float(num_value_.bool_value_);
+    } break;
+    default: {
+      LOG_WARN("unknown data type. type=%d", attr_type_);
+      return 0;
+    }
+  }
+  return 0;
+}
+
+int Value::get_date() const
+{
+  // many cases
+  switch(attr_type_) {
+    case DATES: {
+      return num_value_.date_value_;
     } break;
     default: {
       LOG_WARN("unknown data type. type=%d", attr_type_);

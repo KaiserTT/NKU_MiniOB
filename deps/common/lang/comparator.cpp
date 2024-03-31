@@ -40,6 +40,13 @@ int compare_float(void *arg1, void *arg2)
   return 0;
 }
 
+int compare_date(void *arg1, void * arg2){
+  // compare date
+  int date1 = *(int *)arg1;
+  int date2 = *(int *)arg2;
+  return date1 - date2;
+}
+
 int compare_string(void *arg1, int arg1_max_length, void *arg2, int arg2_max_length)
 {
   const char *s1 = (const char *)arg1;

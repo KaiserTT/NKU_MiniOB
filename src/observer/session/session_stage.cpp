@@ -92,7 +92,7 @@ void SessionStage::handle_request(StageEvent *event)
     LOG_ERROR("Cannot cat event to sessionEvent");
     return;
   }
-
+  
   std::string sql = sev->query();
   if (common::is_blank(sql.c_str())) {
     return;
