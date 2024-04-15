@@ -32,6 +32,7 @@ See the Mulan PSL v2 for more details. */
 #include "sql/operator/join_physical_operator.h"
 #include "sql/operator/calc_logical_operator.h"
 #include "sql/operator/calc_physical_operator.h"
+#include "sql/operator/aggregate_logical_operator.h"
 #include "sql/expr/expression.h"
 #include "common/log/log.h"
 
@@ -73,6 +74,10 @@ RC PhysicalPlanGenerator::create(LogicalOperator &logical_operator, unique_ptr<P
     case LogicalOperatorType::JOIN: {
       return create_plan(static_cast<JoinLogicalOperator &>(logical_operator), oper);
     } break;
+
+    case LogicalOperatorType::AGGREGATE: {
+      return create_plan(static_cast<AggregateLogicalOperator &>(logical_operator), oper);
+    }
 
     default: {
       return RC::INVALID_ARGUMENT;
@@ -292,3 +297,8 @@ RC PhysicalPlanGenerator::create_plan(CalcLogicalOperator &logical_oper, std::un
   return rc;
 }
 
+RC PhysicalPlanGenerator::create_plan(AggregateLogicalOperator &aggregate_oper, std::unique_ptr<PhysicalOperator> &oper)
+{
+  vector<unique_ptr<LogicalOperator>> &child_opers = aggregate_oper.children();
+  
+}
