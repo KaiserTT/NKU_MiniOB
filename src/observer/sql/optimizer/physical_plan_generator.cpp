@@ -33,6 +33,7 @@ See the Mulan PSL v2 for more details. */
 #include "sql/operator/calc_logical_operator.h"
 #include "sql/operator/calc_physical_operator.h"
 #include "sql/operator/aggregate_logical_operator.h"
+#include "sql/operator/aggregate_physical_operator.h"
 #include "sql/expr/expression.h"
 #include "common/log/log.h"
 
@@ -297,8 +298,32 @@ RC PhysicalPlanGenerator::create_plan(CalcLogicalOperator &logical_oper, std::un
   return rc;
 }
 
-RC PhysicalPlanGenerator::create_plan(AggregateLogicalOperator &aggregate_oper, std::unique_ptr<PhysicalOperator> &oper)
+RC PhysicalPlanGenerator::create_plan(AggregateLogicalOperator &aggregate_log_oper, std::unique_ptr<PhysicalOperator> &oper)
 {
-  vector<unique_ptr<LogicalOperator>> &child_opers = aggregate_oper.children();
+  vector<unique_ptr<LogicalOperator>> &child_opers = aggregate_log_oper.children();
   
+  unique_ptr<PhysicalOperator> child_physical_oper;
+
+  RC rc = RC::SUCCESS;
+  if (!child_opers.empty()) {
+    LogicalOperator *child_oper = child_opers.front().get();
+    rc = create(*child_oper, child_physical_oper);
+    if (rc != RC::SUCCESS) {
+      LOG_WARN("failed to create physical operator. rc=%s", strrc(rc));
+      return rc;
+    }
+  }
+
+  const vector<Field> &aggregate_fields = aggregate_log_oper.fields();
+  AggregatePhysicalOperator *aggregate_phy_oper = new AggregatePhysicalOperator;
+  for (auto field : aggregate_fields) {
+    aggregate_phy_oper->add_aggregation(field.aggregation());
+  }
+
+  oper = unique_ptr<PhysicalOperator>(aggregate_phy_oper);
+
+  if (child_physical_oper) {
+    oper->add_child(std::move(child_physical_oper));
+  }
+  return rc;
 }

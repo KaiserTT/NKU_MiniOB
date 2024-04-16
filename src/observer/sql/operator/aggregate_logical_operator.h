@@ -20,7 +20,7 @@ public:
 
     LogicalOperatorType type() const override { return LogicalOperatorType::AGGREGATE; }
 
-    const std::vector<Field> &field() const { return fields_; }
+    const std::vector<Field> &fields() const { return fields_; }
 
 private:
     std::vector<Field> fields_;

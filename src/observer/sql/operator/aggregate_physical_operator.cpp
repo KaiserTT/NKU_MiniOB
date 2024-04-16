@@ -13,11 +13,18 @@ void AggregatePhysicalOperator::add_aggregation(const AggrOp aggregation)
 RC AggregatePhysicalOperator::open(Trx *trx)
 {
     if (children_.size() != 1) {
-        LOG_WARN("aggregate operator must have one and only one child");
+        LOG_WARN("aggregate operator must have one child");
         return RC::INTERNAL;
     }
 
-    return children_[0]->open(trx);
+    std::unique_ptr<PhysicalOperator> &child = children_[0];
+    RC rc = child->open(trx);
+    if (rc != RC::SUCCESS) {
+        LOG_WARN("failed to open child operator: %s", strrc(rc));
+        return rc;
+    }
+
+    return RC::SUCCESS;
 }
 
 RC AggregatePhysicalOperator::next()
@@ -31,6 +38,7 @@ RC AggregatePhysicalOperator::next()
     PhysicalOperator *oper = children_[0].get();
 
     // do aggregate
+    int count = 0;
     std::vector<Value> result_cells;
     while (RC::SUCCESS == (rc = oper->next())) {
         // get tuple
@@ -44,8 +52,12 @@ RC AggregatePhysicalOperator::next()
             switch (aggregation)
             {
             case AggrOp::AGGR_SUM:
+            case AggrOp::AGGR_AVG:
                 rc = tuple->cell_at(cell_idx, cell);
                 attr_type = cell.attr_type();
+                if (result_cells.size() == 0) {
+                    result_cells.push_back(Value(0.0f));
+                }
                 if (attr_type == AttrType::INTS or attr_type == AttrType::FLOATS) {
                     result_cells[cell_idx].set_float(result_cells[cell_idx].get_float() + cell.get_float());
                 }
@@ -54,9 +66,17 @@ RC AggregatePhysicalOperator::next()
                 return RC::UNIMPLENMENT;
             }
         }
+        count++; 
     }
     if (rc == RC::RECORD_EOF) {
         rc = RC::SUCCESS;
+    }
+
+    for (int cell_idx = 0; cell_idx < result_cells.size(); cell_idx++) {
+        const AggrOp aggregation = aggregations_[cell_idx];
+
+        if (aggregation == AggrOp::AGGR_AVG)
+            result_cells[cell_idx].set_float(result_cells[cell_idx].get_float() / count);
     }
 
     result_tuple_.set_cells(result_cells);
@@ -67,4 +87,9 @@ RC AggregatePhysicalOperator::next()
 RC AggregatePhysicalOperator::close() 
 {
     return children_[0]->close();
+}
+
+Tuple *AggregatePhysicalOperator::current_tuple() 
+{
+    return &result_tuple_;
 }
