@@ -16,6 +16,9 @@ See the Mulan PSL v2 for more details. */
 
 #include "common/rc.h"
 #include "sql/stmt/stmt.h"
+#include "storage/field/field.h"
+#include "sql/stmt/filter_stmt.h"
+
 
 class Table;
 
@@ -27,7 +30,7 @@ class UpdateStmt : public Stmt
 {
 public:
   UpdateStmt() = default;
-  UpdateStmt(Table *table, Value *values, int value_amount);
+  UpdateStmt(Table *table, FieldMeta field, Value *values, FilterStmt *filter_stmt);
 
 public:
   static RC create(Db *db, const UpdateSqlNode &update_sql, Stmt *&stmt);
@@ -37,17 +40,27 @@ public:
   {
     return table_;
   }
-  Value *values() const
+  Value *value() const
   {
-    return values_;
+    return value_;
   }
-  int value_amount() const
+  FieldMeta field()
   {
-    return value_amount_;
+    return field_;
+  }
+
+  FilterStmt *filter_stmt() const
+  {
+    return filter_stmt_;
+  }
+  StmtType type() const override
+  {
+    return StmtType::UPDATE;
   }
 
 private:
   Table *table_ = nullptr;
-  Value *values_ = nullptr;
-  int value_amount_ = 0;
+  FieldMeta field_;
+  Value *value_ = nullptr;
+  FilterStmt *filter_stmt_ = nullptr;
 };
