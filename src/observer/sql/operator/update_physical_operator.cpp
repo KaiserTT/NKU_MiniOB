@@ -40,6 +40,10 @@ RC UpdatePhysicalOperator::next()
 
         RowTuple *row_tuple = static_cast<RowTuple *>(tuple);
         Record &record = row_tuple->record();
+
+        if (field_.type() != value_.attr_type()) {
+            return RC::INVALID_ARGUMENT;
+        }
         
         const char* field_name = field_.name();
         int offset_ = field_.offset();
