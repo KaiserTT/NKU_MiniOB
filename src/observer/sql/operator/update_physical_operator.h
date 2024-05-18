@@ -14,7 +14,7 @@ class UpdateStmt;
 class UpdatePhysicalOperator : public PhysicalOperator
 {
 public:
-    UpdatePhysicalOperator(Table* table, FieldMeta& field, Value& value);
+    UpdatePhysicalOperator(Table* table, FieldMeta& field, Value& value) : table_(table), field_(field), value_(value) {}
     virtual ~UpdatePhysicalOperator() = default;
 
     PhysicalOperatorType type() const override
@@ -26,7 +26,7 @@ public:
     RC next() override;
     RC close() override;
 
-    Tuple* current_tuple() const { return nullptr; }
+    Tuple* current_tuple() override { return nullptr; }
 
 private:
     Table* table_ = nullptr;

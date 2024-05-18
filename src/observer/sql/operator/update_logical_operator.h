@@ -23,9 +23,9 @@ public:
 
     Table *table() const { return table_; }
 
-    const FieldMeta field() { return field_; }
+    FieldMeta& field() { return field_; }
 
-    const Value value() { return value_; }
+    Value& value() { return value_; }
 
 private:
     Table* table_ = nullptr;

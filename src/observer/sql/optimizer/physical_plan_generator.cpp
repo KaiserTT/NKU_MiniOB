@@ -80,11 +80,11 @@ RC PhysicalPlanGenerator::create(LogicalOperator &logical_operator, unique_ptr<P
 
     case LogicalOperatorType::AGGREGATE: {
       return create_plan(static_cast<AggregateLogicalOperator &>(logical_operator), oper);
-    }
+    } break;
 
     case LogicalOperatorType::UPDATE: {
       return create_plan(static_cast<UpdateLogicalOperator &>(logical_operator), oper);
-    }
+    } break;
 
     default: {
       return RC::INVALID_ARGUMENT;
@@ -350,7 +350,7 @@ RC PhysicalPlanGenerator::create_plan(UpdateLogicalOperator &update_log_oper, st
     }
   }
 
-  // oper = std::unique_ptr<PhysicalOperator>(new UpdatePhysicalOperator());
+  oper = std::unique_ptr<PhysicalOperator>(new UpdatePhysicalOperator(update_log_oper.table(), update_log_oper.field(), update_log_oper.value()));
 
   if (child_physical_oper) {
     oper->add_child(std::move(child_physical_oper));

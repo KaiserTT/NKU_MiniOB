@@ -53,9 +53,7 @@ RC UpdatePhysicalOperator::next()
         }
     }
 
-    if (rc == RC::RECORD_EOF) {
-        rc = RC::SUCCESS;
-    }
+    return RC::RECORD_EOF;
 }
 
 RC UpdatePhysicalOperator::close()
