@@ -67,4 +67,25 @@ int compare_string(void *arg1, int arg1_max_length, void *arg2, int arg2_max_len
   return 0;
 }
 
+int compare_chars_int(void *arg1, int arg1_max_length, void *arg2) {
+  const char *s1 = (const char *)arg1;
+  int v2 = *(int *)arg2;
+  int v1 = atoi(s1);
+  return v1 - v2;
+}
+
+int compare_chars_float(void *arg1, int arg1_max_length, void *arg2) {
+  const char *s1 = (const char *)arg1;
+  float v2 = *(float *)arg2;
+  float v1 = atof(s1);
+  float cmp = v1 - v2;
+  if (cmp > EPSILON) {
+    return 1;
+  }
+  if (cmp < -EPSILON) {
+    return -1;
+  }
+  return 0;
+}
+
 } // namespace common
